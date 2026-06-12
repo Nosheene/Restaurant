@@ -1,0 +1,378 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "Restaurant API — Studi DP",
+		"description": "Collection Postman pour l'API REST Symfony du projet fil rouge Restaurant.\n\nVariables de collection :\n- `base_url` : http://127.0.0.1:8000 (local) ou URL Platform.sh\n- `api_token` : alimenté automatiquement après Login ou Registration\n\nCompte de test (fixtures) : email.1@studi.fr / password1",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000",
+			"type": "string"
+		},
+		{
+			"key": "api_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "restaurant_id",
+			"value": "1",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Registration",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 201 Created', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"pm.test('Response contains apiToken', function () {",
+									"    var json = pm.response.json();",
+									"    pm.expect(json).to.have.property('apiToken');",
+									"    pm.collectionVariables.set('api_token', json.apiToken);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"Marie\",\n  \"lastName\": \"Martin\",\n  \"email\": \"marie.postman@studi.fr\",\n  \"password\": \"test1234\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/registration",
+							"host": ["{{base_url}}"],
+							"path": ["api", "registration"]
+						},
+						"description": "Inscription d'un nouvel utilisateur. Retourne user, apiToken et roles (201)."
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200 OK', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test('Response contains apiToken', function () {",
+									"    var json = pm.response.json();",
+									"    pm.expect(json).to.have.property('apiToken');",
+									"    pm.collectionVariables.set('api_token', json.apiToken);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"email.1@studi.fr\",\n  \"password\": \"password1\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "login"]
+						},
+						"description": "Connexion avec un compte fixtures. Le token est stocké dans la variable api_token."
+					},
+					"response": []
+				},
+				{
+					"name": "Account / Me",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200 OK', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test('Response contains email', function () {",
+									"    var json = pm.response.json();",
+									"    pm.expect(json).to.have.property('email');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-AUTH-TOKEN",
+								"value": "{{api_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/account/me",
+							"host": ["{{base_url}}"],
+							"path": ["api", "account", "me"]
+						},
+						"description": "Profil de l'utilisateur authentifié (200)."
+					},
+					"response": []
+				},
+				{
+					"name": "Account / Edit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 204 No Content', function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-AUTH-TOKEN",
+								"value": "{{api_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"Jean\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/account/edit",
+							"host": ["{{base_url}}"],
+							"path": ["api", "account", "edit"]
+						},
+						"description": "Modification partielle du compte utilisateur (204)."
+					},
+					"response": []
+				},
+				{
+					"name": "Account / Me — 401 sans token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 401 Unauthorized', function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/account/me",
+							"host": ["{{base_url}}"],
+							"path": ["api", "account", "me"]
+						},
+						"description": "Vérifie que la route protégée renvoie 401 sans header X-AUTH-TOKEN."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Restaurant CRUD",
+			"item": [
+				{
+					"name": "Create Restaurant",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 201 Created', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"pm.test('Response contains id', function () {",
+									"    var json = pm.response.json();",
+									"    pm.expect(json).to.have.property('id');",
+									"    pm.collectionVariables.set('restaurant_id', json.id);",
+									"});",
+									"pm.test('Location header present', function () {",
+									"    pm.response.to.have.header('Location');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-AUTH-TOKEN",
+								"value": "{{api_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Le Gourmet Postman\",\n  \"description\": \"Restaurant créé via Postman\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/restaurant",
+							"host": ["{{base_url}}"],
+							"path": ["api", "restaurant"]
+						},
+						"description": "Création d'un restaurant (201 + header Location)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Restaurant",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200 OK', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test('Response contains name', function () {",
+									"    var json = pm.response.json();",
+									"    pm.expect(json).to.have.property('name');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-AUTH-TOKEN",
+								"value": "{{api_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/restaurant/{{restaurant_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "restaurant", "{{restaurant_id}}"]
+						},
+						"description": "Lecture d'un restaurant par ID (200 ou 404)."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Restaurant",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 204 No Content', function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-AUTH-TOKEN",
+								"value": "{{api_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Le Gourmet Renové\",\n  \"description\": \"Description mise à jour via Postman\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/restaurant/{{restaurant_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "restaurant", "{{restaurant_id}}"]
+						},
+						"description": "Modification d'un restaurant (204)."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Restaurant",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 204 No Content', function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-AUTH-TOKEN",
+								"value": "{{api_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/restaurant/{{restaurant_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "restaurant", "{{restaurant_id}}"]
+						},
+						"description": "Suppression d'un restaurant (204)."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
