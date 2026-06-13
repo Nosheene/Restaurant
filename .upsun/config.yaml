@@ -1,0 +1,67 @@
+routes:
+    "https://{all}/": { type: upstream, upstream: "app:http" }
+    "http://{all}/": { type: redirect, to: "https://{all}/" }
+
+services:
+    database:
+        type: mysql:10.6
+        disk: 512
+
+applications:
+    app:
+        source:
+            root: "/"
+
+        type: php:8.2
+
+        runtime:
+            extensions:
+                - apcu
+                - ctype
+                - iconv
+                - mbstring
+                - sodium
+
+        variables:
+            php:
+                opcache.preload: config/preload.php
+
+        build:
+            flavor: none
+
+        web:
+            locations:
+                "/":
+                    root: "public"
+                    expires: 1h
+                    passthru: "/index.php"
+
+        mounts:
+            "/var/cache": { source: instance, source_path: var/cache }
+            "/var/share": { source: storage, source_path: var/share }
+
+        relationships:
+            database: "database:mysql"
+
+        hooks:
+            build: |
+                set -x -e
+
+                curl -fs https://get.symfony.com/cloud/configurator | bash
+
+                NODE_VERSION=18 symfony-build
+
+            deploy: |
+                set -x -e
+
+                symfony-deploy
+
+        crons:
+            security-check:
+                spec: '50 23 * * *'
+                commands:
+                    start: if [ "$PLATFORM_ENVIRONMENT_TYPE" = "production" ]; then croncape COMPOSER_ROOT_VERSION=1.0.0 COMPOSER_AUDIT_ABANDONED=ignore composer audit --no-cache; fi
+            clean-expired-sessions:
+                spec: '17,47 * * * *'
+                commands:
+                    start: croncape php-session-clean
