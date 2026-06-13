@@ -2,9 +2,9 @@
 
 Projet fil rouge de la formation **Développeur Backend Studi** : API REST Symfony pour la gestion d'un restaurant.
 
-**Emplacement :** `/Volumes/LaCie/IA Back DP/restaurant`
+**Emplacement :** `/Volumes/LaCie/DP Front et back/Restaurant`
 
-**Dépôt GitHub :** https://github.com/Nosheene/restaurant-api
+**Dépôt GitHub :** https://github.com/Nosheene/Restaurant
 
 ## Prérequis
 
@@ -16,7 +16,7 @@ Projet fil rouge de la formation **Développeur Backend Studi** : API REST Symfo
 ## Installation
 
 ```bash
-cd "/Volumes/LaCie/IA Back DP/restaurant"
+cd "/Volumes/LaCie/DP Front et back/Restaurant"
 composer install
 cp .env .env.local   # si .env.local n'existe pas encore
 ```
