@@ -54,9 +54,10 @@ php bin/console doctrine:fixtures:load --no-interaction
 
 ```bash
 symfony server:start
+symfony server:status   # noter le port affiché (8000, 8002…)
 ```
 
-L'API est disponible sur `http://127.0.0.1:8000`.
+L'API est disponible sur `http://127.0.0.1:8000` (ou le port indiqué par `symfony server:status`).
 
 ## Documentation API (Swagger)
 
@@ -123,21 +124,90 @@ restaurant/
 Collection exportable : `postman/Restaurant-API.postman_collection.json`
 
 1. Importer la collection dans Postman.
-2. Vérifier la variable `base_url` (`http://127.0.0.1:8000` en local).
+2. Vérifier la variable `base_url` (`http://127.0.0.1:8000` ou le port affiché par `symfony server:status` en local).
 3. Exécuter **Login** pour alimenter `api_token` automatiquement.
 4. Lancer le **Collection Runner** pour valider tous les endpoints.
 
 Guide captures DP : `Guide captures ecran — Tests Postman Restaurant.md` (dossier DP Front et back).
 
-## Déploiement Platform.sh
+## Déploiement Upsun (Platform.sh)
 
-Fichiers de configuration : `.platform.app.yaml`, `.platform/services.yaml`, `.platform/routes.yaml`
+**Plateforme :** [Upsun](https://upsun.com) (ex-Platform.sh) — format **Flex**  
+**Fichier de configuration :** `.upsun/config.yaml` (PHP 8.2, MySQL 10.6, hooks Symfony)  
+**Projet cloud :** Restaurant (`vcl763wv52oem`)  
+**URL de production :** https://main-bvxea6i-vcl763wv52oem.fr-3.platformsh.site
+
+### Prérequis
+
+1. Compte Upsun / Platform.sh : https://console.platform.sh/signup  
+2. Symfony CLI : `symfony version`  
+3. Git configuré dans le projet
+
+### Connexion
 
 ```bash
+cd "/Volumes/LaCie/DP Front et back/Restaurant"
 symfony login
+symfony cloud:auth:info
+```
+
+### Créer ou lier le projet cloud
+
+```bash
 symfony cloud:project:create --title="Restaurant API Studi"
-symfony cloud:environment:push
-symfony cloud:url
+# ou, si le projet existe déjà :
+symfony cloud:project:set-remote vcl763wv52oem
+```
+
+### Déployer
+
+```bash
+git add .
+git commit -m "Mise à jour configuration Upsun"
+symfony cloud:environment:push -e main --wait
+# ou forcer un redeploy :
+symfony cloud:environment:redeploy -e main --wait
+```
+
+Les hooks exécutés automatiquement :
+- **build** : `symfony-build` (Composer, cache)
+- **deploy** : `symfony-deploy` (migrations Doctrine)
+
+### Vérifier le déploiement
+
+```bash
+symfony cloud:url -e main
+```
+
+Swagger en production :
+
+```
+https://main-bvxea6i-vcl763wv52oem.fr-3.platformsh.site/api/doc
+```
+
+Test login en production (inscription requise si les fixtures ne sont pas chargées) :
+
+```bash
+curl -X POST https://main-bvxea6i-vcl763wv52oem.fr-3.platformsh.site/api/registration \
+  -H "Content-Type: application/json" \
+  -d '{"firstName":"Marie","lastName":"Martin","email":"marie.prod@studi.fr","password":"password1"}'
+
+curl -X POST https://main-bvxea6i-vcl763wv52oem.fr-3.platformsh.site/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"marie.prod@studi.fr","password":"password1"}'
+```
+
+Dans Postman, définir `base_url` sur l'URL HTTPS de production.
+
+### Comptes en production
+
+Les fixtures (`email.1@studi.fr` / `password1`) sont chargées **en local** uniquement.  
+En production, créer un compte via `POST /api/registration` ou charger les fixtures :
+
+```bash
+symfony cloud:ssh -e main
+php bin/console doctrine:fixtures:load --no-interaction
+exit
 ```
 
 Procédure complète : `/Volumes/LaCie/IA Back DP/deploiement/README.md`
